@@ -16,8 +16,8 @@ kernel void bellmanFord(
     uint tid [[ thread_position_in_grid ]]
 ) {
     if (tid >= numNodes) return;
-
-    float minDistance = distances[tid]; // Start with current distance
+    //starts with current distance
+    float minDistance = distances[tid];
     uint start = nodeEdgeStart[tid];
     uint end = nodeEdgeStart[tid + 1];
 

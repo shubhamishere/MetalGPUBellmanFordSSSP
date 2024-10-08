@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
+//edge structure representation
 typedef struct {
     uint src;
     uint dst;
@@ -9,12 +10,14 @@ typedef struct {
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-        // Set the source node
-        uint sourceNode = 3858241; // Change this to your desired source node
-        BOOL isUndirected = NO; // Set to NO for directed graphs
+        //MANUALLY set the source node here VERY imp.
+        uint sourceNode = 3858241;
+        //MANUALLY set NO for directed graphs, YES for undirected graph...VERY imp dont forget.
+        BOOL isUndirected = NO;
 
-        // Read edge list from file
-        NSString *filePath = @"/Users/shubham.pandey/Documents/High_Performance_Computing/downloads/cit-Patents.txt"; // Update the file path
+        //read edge list from the input file
+        //update the file path
+        NSString *filePath = @"/Users/shubham.pandey/Documents/High_Performance_Computing/downloads/cit-Patents.txt";
         NSError *error = nil;
         NSString *fileContents = [NSString stringWithContentsOfFile:filePath
                                                            encoding:NSUTF8StringEncoding
@@ -30,18 +33,23 @@ int main(int argc, const char * argv[]) {
 
         uint maxNode = 0;
 
-        // Parse the edge list
+        //parsing the edge list
         for (NSString *line in lines) {
-            if ([line length] == 0 || [line hasPrefix:@"#"]) continue; // Skip comments and empty lines
+            //to skip comments and empty lines
+            if ([line length] == 0 || [line hasPrefix:@"#"]) continue;
 
             NSArray *components = [line componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 
             if ([components count] >= 2) {
                 uint src = [components[0] intValue];
                 uint dst = [components[1] intValue];
-                float weight = 1.0f;  // Default weight for unweighted graphs
-
+                //imp to handle default weight for unweighted graphs, take all edge weight as 1
+                float weight = 1.0f;
+                
+                
                 if ([components count] == 3) {
+                    //means there exists a third column that indicates weghts of corresponding edge in my input edge list file,
+                    //-usko weight assume kar ke update kar do
                     weight = [components[2] floatValue];
                 }
 
@@ -64,14 +72,15 @@ int main(int argc, const char * argv[]) {
         uint numEdges = (uint)[edgeArray count];
 
         if (numEdges == 0 || numNodes == 0) {
-            NSLog(@"Error: No edges or nodes were loaded. Please check the edge list file.");
+            NSLog(@"Error: No edges or nodes were loaded. Please check your edge list file.");
             return -1;
         }
 
         NSLog(@"Number of Edges: %u", numEdges);
         NSLog(@"Number of Nodes: %u", numNodes);
 
-        // **Modification 1: Sort edges by destination node**
+        //modification 1: Sort edges by destination node
+        //Purpose: Organizes edges so that all edges for a particular node are contiguous. This optimizes memory access patterns on the GPU.
         [edgeArray sortUsingComparator:^NSComparisonResult(NSValue *obj1, NSValue *obj2) {
             Edge edge1, edge2;
             [obj1 getValue:&edge1];
@@ -81,7 +90,8 @@ int main(int argc, const char * argv[]) {
             return NSOrderedSame;
         }];
 
-        // **Modification 2: Build nodeEdgeStart array**
+        //mdification 2: Build nodeEdgeStart array
+        //Purpose is to indicates the starting index of edges for each node in the edges array. This allows quick access to all edges of a node.
         uint *nodeEdgeStart = (uint *)malloc(sizeof(uint) * (numNodes + 1));
         memset(nodeEdgeStart, 0, sizeof(uint) * (numNodes + 1));
 
@@ -91,7 +101,7 @@ int main(int argc, const char * argv[]) {
             nodeEdgeStart[edge.dst + 1]++;
         }
 
-        // Convert counts to starting indices
+        //Convert counts to starting indices
         for (uint i = 1; i <= numNodes; i++) {
             nodeEdgeStart[i] += nodeEdgeStart[i - 1];
         }
