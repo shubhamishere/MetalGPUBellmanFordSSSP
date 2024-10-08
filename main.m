@@ -106,7 +106,7 @@ int main(int argc, const char * argv[]) {
             nodeEdgeStart[i] += nodeEdgeStart[i - 1];
         }
 
-        // Initialize distances
+        //initialize distances
         float *distances = (float *)malloc(sizeof(float) * numNodes);
         float *newDistances = (float *)malloc(sizeof(float) * numNodes);
 
@@ -117,11 +117,11 @@ int main(int argc, const char * argv[]) {
         distances[sourceNode] = 0.0f;
         newDistances[sourceNode] = 0.0f;
 
-        // Create Metal device and command queue
+        //create Metal device and command queue
         id<MTLDevice> device = MTLCreateSystemDefaultDevice();
         id<MTLCommandQueue> commandQueue = [device newCommandQueue];
 
-        // Load the Metal shader
+        //load the Metal shader
         NSError *libraryError = nil;
         id<MTLLibrary> library = [device newDefaultLibraryWithBundle:[NSBundle mainBundle] error:&libraryError];
 
@@ -139,8 +139,8 @@ int main(int argc, const char * argv[]) {
             return -1;
         }
 
-        // **Modification 3: Prepare buffers**
-        // Edge buffer
+        //Modification 3 - Prepare buffers
+        //edge buffer
         id<MTLBuffer> edgeBuffer = [device newBufferWithLength:sizeof(Edge) * numEdges options:MTLResourceStorageModeShared];
         Edge *edgeBufferPointer = (Edge *)[edgeBuffer contents];
 
@@ -150,12 +150,12 @@ int main(int argc, const char * argv[]) {
             edgeBufferPointer[i] = edge;
         }
 
-        // Node edge start buffer
+        //Node edge start buffer
         id<MTLBuffer> nodeEdgeStartBuffer = [device newBufferWithBytes:nodeEdgeStart
                                                                 length:sizeof(uint) * (numNodes + 1)
                                                                options:MTLResourceStorageModeShared];
 
-        // Distance buffers
+        //Distance buffers
         id<MTLBuffer> distanceBuffer = [device newBufferWithBytes:distances
                                                            length:sizeof(float) * numNodes
                                                           options:MTLResourceStorageModeShared];
@@ -163,18 +163,18 @@ int main(int argc, const char * argv[]) {
                                                                length:sizeof(float) * numNodes
                                                               options:MTLResourceStorageModeShared];
 
-        // Initialize newDistances to the current distances
+        //initialize newDistances to the current distances
         memcpy([newDistanceBuffer contents], [distanceBuffer contents], sizeof(float) * numNodes);
 
-        // Number of nodes buffer
+        //Number of nodes buffer
         id<MTLBuffer> numNodesBuffer = [device newBufferWithBytes:&numNodes
                                                            length:sizeof(uint)
                                                           options:MTLResourceStorageModeShared];
 
-        // Capture start time
+        //capture start time
         NSDate *startTime = [NSDate date];
 
-        // **Modification 4: Bellman-Ford iterations with updated compute encoder**
+        //Modification 4: Bellman-Ford iterations with updated compute encoder
         for (uint i = 0; i < numNodes - 1; i++) {
             id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
             id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
@@ -182,8 +182,10 @@ int main(int argc, const char * argv[]) {
             [computeEncoder setComputePipelineState:computePipelineState];
             [computeEncoder setBuffer:edgeBuffer offset:0 atIndex:0];
             [computeEncoder setBuffer:nodeEdgeStartBuffer offset:0 atIndex:1];
-            [computeEncoder setBuffer:distanceBuffer offset:0 atIndex:2];     // Input distances
-            [computeEncoder setBuffer:newDistanceBuffer offset:0 atIndex:3];  // Output distances
+            //Input distances
+            [computeEncoder setBuffer:distanceBuffer offset:0 atIndex:2];
+            //Output distances
+            [computeEncoder setBuffer:newDistanceBuffer offset:0 atIndex:3];
             [computeEncoder setBuffer:numNodesBuffer offset:0 atIndex:4];
 
             MTLSize gridSize = MTLSizeMake(numNodes, 1, 1);
@@ -198,18 +200,18 @@ int main(int argc, const char * argv[]) {
             [commandBuffer commit];
             [commandBuffer waitUntilCompleted];
 
-            // Copy updated distances back to distanceBuffer
+            //Copy the updated distances back to distanceBuffer
             memcpy([distanceBuffer contents], [newDistanceBuffer contents], sizeof(float) * numNodes);
         }
 
-        // Capture end time
+        //record end time
         NSDate *endTime = [NSDate date];
         NSTimeInterval executionTime = [endTime timeIntervalSinceDate:startTime];
 
-        // Log the execution time
+        //print the execution time
         NSLog(@"Execution time: %f seconds", executionTime);
 
-        // Read back the distances
+        //Read and print the distances on the console
         float *finalDistances = (float *)[distanceBuffer contents];
         for (uint i = 0; i < numNodes; i++) {
             if (finalDistances[i] == INFINITY) {
@@ -219,7 +221,7 @@ int main(int argc, const char * argv[]) {
             }
         }
 
-        // Free allocated memory
+        //Free allocated memory
         free(distances);
         free(newDistances);
         free(nodeEdgeStart);
