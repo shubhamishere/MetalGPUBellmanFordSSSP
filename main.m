@@ -191,7 +191,7 @@ int main(int argc, const char * argv[]) {
             nodeEdgeStart[i] += nodeEdgeStart[i - 1];
         }
 
-        // Initialize distances
+        // Initialize distances arrays.
         float *distances = (float *)malloc(sizeof(float) * numNodes);
         float *newDistances = (float *)malloc(sizeof(float) * numNodes);
 
