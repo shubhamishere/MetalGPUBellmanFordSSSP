@@ -43,6 +43,9 @@ kernel void bellmanFord(
         float oldDist = atomic_load_explicit(&newDistances[v], memory_order_relaxed);
 
         while (newDist < oldDist) {
+            //we got the updated shorter path to node v, hence This atomic operation
+            //tries to update the value of newDistances[v] from oldDist to newDist.
+            //this means exchange succeeded
             bool exchanged = atomic_compare_exchange_weak_explicit(
                 &newDistances[v],
                 &oldDist,
@@ -51,13 +54,15 @@ kernel void bellmanFord(
                 memory_order_relaxed
             );
             if (exchanged) {
+                //updatedFlag is set to 1 using an atomic store operation
                 // Setting the atomic flag to 1 shows an update occurred
                 atomic_store_explicit(updatedFlag, 1, memory_order_relaxed);
                 break;
             }
-            // If not exchanged, oldDist has been updated, so we need to check the condition again
-            // atomic_compare_exchange_weak_explicit updates oldDist on failure
+            
             if (!(newDist < oldDist)) {
+                //If the compare-exchange operation fails (because newDist is not less than oldDist anymore),
+                //the loop breaks, and no further updates are attempted for this edge.
                 break;
             }
         }
