@@ -159,9 +159,10 @@ int main(int argc, const char * argv[]) {
         NSLog(@"Number of Edges: %u", numEdges);
 
         // Modification 1: Sort edges by source node
-        //this is an anonymous block/closure that iterates through the array elements,
+        //this is an anonymous block/closure that iterates through the edgeAarray elements,
         //comparing pairs of elements to set them into order.
         //For each pair, it calls the comparator block, passing the two elements as arguments obj1 and obj2
+        //why?bcz, all OUTGOING edges for a node are contiguous in memory.
         [edgeArray sortUsingComparator:^NSComparisonResult(NSValue *obj1, NSValue *obj2) {
             Edge edge1, edge2;
             [obj1 getValue:&edge1];
