@@ -162,7 +162,8 @@ int main(int argc, const char * argv[]) {
         //this is an anonymous block/closure that iterates through the edgeAarray elements,
         //comparing pairs of elements to set them into order.
         //For each pair, it calls the comparator block, passing the two elements as arguments obj1 and obj2
-        //why? bcz, all OUTGOING edges for a node will be contiguous in memory.
+        //purpose:  all OUTGOING edges for a node will be contiguous in memory.
+        //Sorting edges by source node makes GPU threads' life easy.
         [edgeArray sortUsingComparator:^NSComparisonResult(NSValue *obj1, NSValue *obj2) {
             Edge edge1, edge2;
             [obj1 getValue:&edge1];
@@ -172,7 +173,9 @@ int main(int argc, const char * argv[]) {
             return NSOrderedSame;
         }];
 
-        // Modification 2: Build nodeEdgeStart array
+        // Build nodeEdgeStart array: optimization technique that prepares the graph structure for quick access on the GPU.
+        //purpose: nodeEdgeStart will be used to track the starting index of outgoing edges for each node in the sorted edgeArray.
+        //makes it efficient to find all edges that are sourced from a given node.
         uint *nodeEdgeStart = (uint *)malloc(sizeof(uint) * (numNodes + 1));
         memset(nodeEdgeStart, 0, sizeof(uint) * (numNodes + 1));
 
