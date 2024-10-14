@@ -44,7 +44,7 @@ kernel void bellmanFord(
                 memory_order_relaxed
             );
             if (exchanged) {
-                // Set the atomic flag to 1 to indicate an update occurred
+                // Setting the atomic flag to 1 shows an update occurred
                 atomic_store_explicit(updatedFlag, 1, memory_order_relaxed);
                 break;
             }

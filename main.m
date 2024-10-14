@@ -10,11 +10,16 @@ typedef struct {
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
+//Section 1: giving inputs parameters:
+        
         // Manually set the source node here
-        uint sourceNodeLabel = 2; // This is the node label
-        BOOL isUndirected = NO; // Set to YES for undirected graphs
-
-        // Read edge list from the input file
+        //This is the source node label -Very imp
+        uint sourceNodeLabel = 2;
+        //Set to YES for undirected graphs -Very imp
+        BOOL isUndirected = NO;
+//Section 2: loading data and parsing
+                
+        //Reading edge list from the input file
         NSString *filePath = @"/Users/shubham.pandey/Documents/High_Performance_Computing/downloads/roadNet-CA.txt";
         NSError *error = nil;
         NSString *fileContents = [NSString stringWithContentsOfFile:filePath
@@ -75,6 +80,7 @@ int main(int argc, const char * argv[]) {
                 NSLog(@"Skipping invalid line (fewer than 2 components): %@", line);
             }
         }
+//Section 3: Node Label Mapping
 
         // Mapping node labels to indices (as key-value pairs in dictionary)
         // Acts as a lookup table to map node labels
@@ -153,6 +159,9 @@ int main(int argc, const char * argv[]) {
         NSLog(@"Number of Edges: %u", numEdges);
 
         // Modification 1: Sort edges by source node
+        //this is an anonymous block/closure that iterates through the array elements,
+        //comparing pairs of elements to set them into order.
+        //For each pair, it calls the comparator block, passing the two elements as arguments obj1 and obj2
         [edgeArray sortUsingComparator:^NSComparisonResult(NSValue *obj1, NSValue *obj2) {
             Edge edge1, edge2;
             [obj1 getValue:&edge1];
